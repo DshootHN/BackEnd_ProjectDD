@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AppWebAPI.Services;
 using AppWebAPI.Models;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace AppWebAPI.Controllers;
 
@@ -23,8 +24,20 @@ public class UsuariosController : ControllerBase
         return Ok(usuarios);
     }
 
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest) // Marking method as async and changing return type to Task<IActionResult>
+    {
+        var usuarios = await _usuarioService.ObtenerUsuarios(); // Awaiting the ObtenerUsuarios method
+        var usuario = usuarios.FirstOrDefault(u => u.Correo == loginRequest.Email && u.Contrasena == loginRequest.Password);
+        if (usuario != null && usuario.Contrasena == loginRequest.Password)
+        {
+            return Ok(usuario);
+        }
+        return Unauthorized("Contraseña o Correo invalidos");
+    }
+
     [HttpPost]
-    public async Task<ActionResult> CrearUsuario([FromBody]Usuario usuario)
+    public async Task<ActionResult> CrearUsuario([FromBody] Usuario usuario)
     {
         if (usuario == null)
         {
@@ -62,5 +75,5 @@ public class UsuariosController : ControllerBase
         }
         return NoContent();
     }
-    
+
 }
